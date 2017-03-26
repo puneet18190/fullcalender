@@ -155,6 +155,10 @@
 
         fetch_event();
 
+        $(".fc-month-button, .fc-agendaWeek-button, .fc-agendaDay-button, .fc-next-button, fc-prev-button").click(function(){
+            fetch_event();
+        })
+
     });
 
     function fetch_event(){
@@ -206,11 +210,6 @@
 
         window.modal = modal;
     }
-
-    // $(".fc-month-button, .fc-agendaWeek-button, .fc-agendaDay-button").click(function(){
-    //     alert("hi")
-    //     fetch_event();
-    // })
 
   </script>
 
