@@ -10,20 +10,29 @@ class HomesController < ApplicationController
   end
 
   def create
- 	@select = Home.new(home_params)
- 	if @select.save!
-
- 	 	redirect_to new_home_path
- 	 else
- 	 	redirect_to homes_path
- 	end 	
+   @select = Home.new(home_params)
+    if @select.save!
+      redirect_to new_home_path
+    else
+      redirect_to homes_path
+    end
   end
 
   def show
   end
 
   def edit
-  	@data = Home.find(params[:id])
+  	@select = Home.find(params[:id])
+  end
+
+  def update
+    @select = Home.find(params[:id])
+    @select.update(home_params)
+    if @select.save!
+      redirect_to new_home_path
+    else
+      redirect_to homes_path
+    end
   end
 
   def events
@@ -34,7 +43,7 @@ class HomesController < ApplicationController
   end
 
   def home_params
-  	return params.require(:home).permit(:name, :starting_date, :ending_date, :description)
+  	return params.require(:home).permit(:name, :starting_date, :ending_date, :description, :category)
   end
 
 end

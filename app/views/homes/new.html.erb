@@ -15,11 +15,12 @@
                 <div class="ibox-content">
                     <div id='external-events'>
                         <p>Drag a event and drop into callendar.</p>
-                        <div class='external-event navy-bg'>Go to shop and buy some products.</div>
-                        <div class='external-event navy-bg'>Check the new CI from Corporation.</div>
-                        <div class='external-event navy-bg'>Send documents to John.</div>
-                        <div class='external-event navy-bg'>Phone to Sandra.</div>
-                        <div class='external-event navy-bg'>Chat with Michael.</div>
+                        <div class='external-event navy-bg'>Category 1</div>
+                        <div class='external-event navy-bg'>Category 2</div>
+                        <div class='external-event navy-bg'>Category 3</div>
+                        <div class='external-event navy-bg'>Category 4</div>
+
+                        <div class='external-event navy-bg'>Category 5</div>
                         <p class="m-t">
                             <input type='checkbox' id='drop-remove' class="i-checks" checked /> <label for='drop-remove'>remove after drop</label>
                         </p>
@@ -47,7 +48,7 @@
 <div id="modal" class="modal fade">
     <div class="modal-dialog animated">
         <div class="modal-content">
-            <%= form_for @select , html: {class: "form-horizontal"}  do|t| %>
+            <%= form_for @select , html: {class: "form-horizontal", id: "calendar_form"}  do |t| %>
                 <%= render partial: 'events' , locals: {t:t} %>
             <% end %>
         </div>
@@ -59,3 +60,158 @@
         <a href="#" id="showModal" class="btn btn-success">Show modal</a>
     </div>
 </div>
+
+<% content_for :custom_javascript do %>
+  <script type='text/javascript'>
+        $(document).ready(function() {
+
+            $('.i-checks').iCheck({
+                checkboxClass: 'icheckbox_square-green',
+                radioClass: 'iradio_square-green'
+            });
+
+        /* initialize the external events
+         -----------------------------------------------------------------*/
+
+
+        $('#external-events div.external-event').each(function() {
+
+            // store data so the calendar knows to render an event upon drop
+            $(this).data('event', {
+                title: $.trim($(this).text()), // use the element's text as the event title
+                stick: true // maintain when user navigates (see docs on the renderEvent method)
+            });
+
+            // make the event draggable using jQuery UI
+            $(this).draggable({
+                zIndex: 1111999,
+                revert: true,      // will cause the event to go back to its
+                revertDuration: 0  //  original position after the drag
+            });
+
+        });
+
+
+        /* initialize the calendar
+         -----------------------------------------------------------------*/
+        var date = new Date();
+        var d = date.getDate();
+        var m = date.getMonth();
+        var y = date.getFullYear();
+
+        $('#calendar').fullCalendar({
+            header: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'month,agendaWeek,agendaDay'
+            },
+            editable: false,
+            droppable: true, // this allows things to be dropped onto the calendar
+            drop: function(e) {
+                // is the "remove after drop" checkbox checked?
+                if ($('.navy-bg').is(':checked')) {
+                    // if so, remove the element from the "Draggable Events" list
+                    
+                }
+                var src = $(this);
+                var full_date = new Date(e._d)
+                var date = full_date.getDate();
+                if (date < 10){
+                    date = "0"+date
+                }
+                var month = full_date.getMonth()+1;
+                if (month < 10){
+                    month = "0"+month
+                }
+                var year = full_date.getFullYear()
+
+                var category = $(src[0]).html()
+                console.log(src);
+                console.log(e);
+                $("#modal").modal("show");
+                $(".cal_category").html(category).val(category);
+                $(".cal_start_date").val(year+"-"+month+"-"+date)
+                $(".cal_end_date").val(year+"-"+month+"-"+date)
+                $(".cal_name").val("")
+                $(".cal_desc").html("");
+                $("form#calendar_form .cal_method_name").remove()
+                $("form#calendar_form").attr("action", "/homes")
+
+                fetch_event()
+            },
+            events: [
+                <% Home.all.each do |e| %>
+                    <% if !e.starting_date.nil? && !e.ending_date.nil?%>
+                    {
+                        title: '<%= e.name %>',
+                        start: '<%= e.starting_date %>',
+                        end: '<%= e.ending_date %>',
+                    },
+                    <% end %>
+                <% end %>
+
+            ]
+        });
+
+        fetch_event();
+
+    });
+
+    function fetch_event(){
+        $(".fc-day-grid-event").on("click",function(){
+            var title = $(this).find(".fc-content").text();
+            console.log(title);
+            var singleObject = $(this);
+            console.log(singleObject);
+            $("#modal").modal("show");
+
+            var category = $(this).find(".fc-title").html();
+            
+            $.ajax({
+              url: "/events",
+              type: "POST",
+              data: "title="+title,
+              success: function(res) {
+                var response = res.data;
+                if(response == undefined){
+                    $(".cal_category").html(category);
+                    $(".cal_name").val("");
+                    $(".cal_start_date").val("")
+                    $(".cal_end_date").val("")
+                    $(".cal_desc").html("");
+                    $("form#calendar_form .cal_method_name").remove()
+                    $("form#calendar_form").attr("action", "/homes")
+                }else{
+                    $(".cal_category").html(response.category);
+                    $(".cal_name").val(response.name);
+                    $(".cal_start_date").val(response.starting_date)
+                    $(".cal_end_date").val(response.ending_date)
+                    $(".cal_desc").html(response.description);
+                    $("form#calendar_form").prepend('<input type="hidden" class="cal_method_name" name="_method" value="patch">')
+                    $("form#calendar_form").attr("action", "/homes/"+ response.id)
+                }
+              }
+            });
+        });
+    }
+
+    window.onload = function() {
+        var modal = new RModal(document.getElementById('modal'), {});
+
+
+        $('#showModal').click(function(e) {
+            e.preventDefault();
+            modal.open();
+        });
+
+        window.modal = modal;
+    }
+
+    // $(".fc-month-button, .fc-agendaWeek-button, .fc-agendaDay-button").click(function(){
+    //     alert("hi")
+    //     fetch_event();
+    // })
+
+  </script>
+
+<% end %>
