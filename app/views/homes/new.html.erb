@@ -21,9 +21,9 @@
                         <div class='external-event navy-bg'>Category 4</div>
 
                         <div class='external-event navy-bg'>Category 5</div>
-                        <p class="m-t">
+                        <!-- <p class="m-t">
                             <input type='checkbox' id='drop-remove' class="i-checks" checked /> <label for='drop-remove'>remove after drop</label>
-                        </p>
+                        </p> -->
                     </div>
                 </div>
             </div>
@@ -157,8 +157,10 @@
 
         $(".fc-month-button, .fc-agendaWeek-button, .fc-agendaDay-button, .fc-next-button, fc-prev-button").click(function(){
             fetch_event();
-        })
-
+        });
+        // Remove class of week & days
+        $(".fc-agendaWeek-button.fc-button.fc-state-default").css("display","none");
+        $(".fc-agendaDay-button.fc-button.fc-state-default.fc-corner-right").css("display","none");
     });
 
     function fetch_event(){
@@ -192,6 +194,7 @@
                     $(".cal_end_date").val(response.ending_date)
                     $(".cal_desc").html(response.description);
                     $("form#calendar_form").prepend('<input type="hidden" class="cal_method_name" name="_method" value="patch">')
+                    $('#delete').attr("type", "submit");
                     $("form#calendar_form").attr("action", "/homes/"+ response.id)
                 }
               }

@@ -30,8 +30,9 @@
     </div>
 </div>
 
-<div class="modal-footer">
+<div class="modal-footer" id="modal-footers">
     <button class="btn btn-default" id="close" type="button" data-dismiss="modal" onclick="modal.close();">Cancel</button>
+    <%= t.submit "Delete", class: "btn btn-danger", id: "delete" ,type: :hidden %>
     
     <%= t.submit "Save", class: "btn btn-primary" %>
 </div>
