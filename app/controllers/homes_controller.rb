@@ -35,6 +35,15 @@ class HomesController < ApplicationController
     end
   end
 
+  def destroy
+    @destroy = Home.find(params[:id])
+    if @destroy.destroy   
+      redirect_to new_home_path
+    else
+      redirect_to homes_path
+    end
+  end
+
   def events
   	# binding.pry
   	@data = Home.where(name: params[:title].strip).last
